@@ -15,6 +15,7 @@ import android.widget.LinearLayout;
 import android.widget.RadioGroup;
 import android.widget.Spinner;
 import android.widget.TextView;
+
 import android.widget.Toast;
 
 import com.android.volley.DefaultRetryPolicy;
@@ -49,6 +50,7 @@ public class DangerSignsActivity extends ActionBarActivity implements Expandable
             p_sP, g_uS, n_mS, a_dX, b_aX, f_cX, f_nX, l_pX, l_cX, h_bX, h_dX, b_vX, d_bX,
             p_uX, p_fX, w_bX, a_lX, p_sX, f_sX, t_bS, f_bS, p_aS, f_sP, m_sP, a_sV, p_fA;
     RadioGroup motherGroup;
+
     String motherTypeValue = "", mobile100;
     String whereTo = "survey";
     String my514 = "";
@@ -59,10 +61,12 @@ public class DangerSignsActivity extends ActionBarActivity implements Expandable
     SharedPreference sharedPreference;
     int index, type;
     int survey_status = 0;
+
     private boolean isDraft;
     private String draft_key;
     private int draft_index;
     private JSONObject draftedJson;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -79,6 +83,7 @@ public class DangerSignsActivity extends ActionBarActivity implements Expandable
         e_wS = ((Spinner) findViewById(R.id.eWeightLoss));
         s_hS = ((Spinner) findViewById(R.id.swelling_hands));
         v_S = ((Spinner) findViewById(R.id.vomiting));
+
         c_S = ((Spinner) findViewById(R.id.consciousness));
         f_S = ((Spinner) findViewById(R.id.fever));
         d_sS = ((Spinner) findViewById(R.id.discharge));
@@ -92,6 +97,7 @@ public class DangerSignsActivity extends ActionBarActivity implements Expandable
         n_mS = ((Spinner) findViewById(R.id.not_moving));
         t_bS = ((Spinner) findViewById(R.id.time_birth));
         f_bS = ((Spinner) findViewById(R.id.first_baby));
+
         p_aS = ((Spinner) findViewById(R.id.pnc_attended));
         p_fA = ((Spinner) findViewById(R.id.pregnant_first_anc));
 
@@ -100,6 +106,7 @@ public class DangerSignsActivity extends ActionBarActivity implements Expandable
         f_cX = ((Spinner) findViewById(R.id.fever_chills));
         f_nX = ((Spinner) findViewById(R.id.fever_nochills));
         h_bX = ((Spinner) findViewById(R.id.high_blood));
+        
         l_pX = ((Spinner) findViewById(R.id.labor_pains));
         l_cX = ((Spinner) findViewById(R.id.loss_consciousness));
         h_dX = ((Spinner) findViewById(R.id.head_dizzy));
