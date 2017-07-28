@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:paddingBottom="@dimen/activity_vertical_margin"
+    android:paddingLeft="@dimen/activity_horizontal_margin"
+    android:paddingRight="@dimen/activity_horizontal_margin"
+    android:paddingTop="@dimen/activity_vertical_margin">
+
+    <com.rengwuxian.materialedittext.MaterialEditText
+        android:id="@+id/txtName"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="@string/Name_full" />
+
+    <com.rengwuxian.materialedittext.MaterialEditText
+        android:id="@+id/txtAgeId"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="@string/Age_Mother"
+        android:inputType="numberDecimal"
+        android:maxLength="2" />
+
+    <com.rengwuxian.materialedittext.MaterialEditText
+        android:id="@+id/txtNumber"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="@string/household_num" />
+
+    <LinearLayout style="@style/linear_layout_vertical" android:id="@+id/locations">
+
+        <TextView android:text="@string/sub_location" style="@style/spinner_label" android:contentDescription="@string/sub_location"/>
+        <Spinner android:id="@+id/spnSublocation"  android:layout_width="match_parent" android:layout_height="wrap_content" ></Spinner>
+
+        <TextView android:text="@string/village" style="@style/spinner_label" android:contentDescription="@string/village_name"/>
+        <Spinner android:id="@+id/spnVillage" android:layout_width="match_parent" android:layout_height="wrap_content" ></Spinner>
+
+    </LinearLayout>
+    <TextView android:text="@string/status" style="@style/spinner_label" android:contentDescription="@string/status"/>
+    <Spinner android:id="@+id/category"  android:layout_width="match_parent" android:layout_height="wrap_content" android:entries="@array/categories"></Spinner>
+
+    <!--<Button-->
+        <!--android:id="@+id/button2"-->
+        <!--android:layout_width="match_parent"-->
+        <!--android:layout_height="wrap_content"-->
+        <!--android:layout_gravity="center_horizontal"-->
+        <!--android:onClick="toDss"-->
+        <!--android:text="Proceed to Danger signs" />-->
+
+</LinearLayout>

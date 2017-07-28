@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item
+        android:id="@+id/action_draft"
+        android:orderInCategory="100"
+        android:title="@string/action_draft"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/action_clear_draft"
+        android:orderInCategory="102"
+        android:title="@string/clear_draft"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/action_mother"
+        android:orderInCategory="101"
+        android:title="@string/Mdss"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/action_child"
+        android:orderInCategory="101"
+        android:title="@string/Cdss"
+        app:showAsAction="never" />
+</menu>
