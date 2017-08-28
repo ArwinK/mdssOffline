@@ -106,6 +106,9 @@ public class Form100Dss extends ActionBarActivity implements View.OnClickListene
         SharedPreferences sharedPreferences = getSharedPreferences(Constant.HOUSEHOLD_INFORMATION,Context.MODE_PRIVATE);
         key = sharedPreferences.getInt(Constant.DSS_DRAFT_KEY, 0);
 
+//        SharedPreferences sharedPrefs = getSharedPreferences(Constant.DSS_DRAFT, Context.MODE_PRIVATE);
+//        num = sharedPrefs.getInt(Constant.DSS_NUMBER, 0);
+
         session = new MSession(getApplicationContext());
 
         if(!session.isLoggedIn()){

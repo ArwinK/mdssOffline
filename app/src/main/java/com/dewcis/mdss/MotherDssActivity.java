@@ -68,12 +68,14 @@ public class MotherDssActivity extends AppCompatActivity
             rand = extra.getString("rand");
             survey = extra.getInt("survey_id");
 
-            Log.d("xxxxx", survey + "");
+            Log.d("mania", rand);
 
             // set dss key
             SharedPreferences sharedPreferences = getSharedPreferences(Constant.DSS_DRAFT, Context.MODE_PRIVATE);
             SharedPreferences.Editor editor = sharedPreferences.edit();
             editor.putString(Constant.DSS_DRAFT_KEY, rand);
+            editor.putInt("survey_id", survey);
+            editor.putInt(Constant.DSS_NUMBER, 2);
             editor.putBoolean(Constant.DRAFT_BOOLEAN, true);
             editor.apply();
 

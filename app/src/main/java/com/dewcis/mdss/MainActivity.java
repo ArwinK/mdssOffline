@@ -1,8 +1,6 @@
 package com.dewcis.mdss;
 
-import android.app.AlertDialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
@@ -25,12 +23,10 @@ import com.android.volley.Request;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
-import com.dewcis.mdss.SharedPreferences.SharedPreference;
 import com.dewcis.mdss.SharedPreferences.SharedPreferences514;
 import com.dewcis.mdss.constants.Constant;
+import com.dewcis.mdss.databases.HouseholdDb;
 import com.dewcis.mdss.fragments.BabyDssDetails;
-import com.dewcis.mdss.model.Survey;
-import com.dewcis.mdss.utils.DraftActivity;
 import com.dewcis.mdss.model.MSession;
 import com.dewcis.mdss.model.Success;
 import com.dewcis.mdss.utils.AboutDialog;
@@ -59,10 +55,7 @@ public class MainActivity extends ActionBarActivity implements ExpandablePanel.O
     static boolean doLog = MApplication.LOGDEBUG;
     static String CTAG = MainActivity.class.getName() + " : ";
     boolean isEdit = false;
-    int postpartum = 0, pregnant = 0, infants = 0, children = 0, other_women = 0, other_members, var_postpartum, var_pregnant, var_mothers, var_members, var_children, var_infants;
-
-    private SharedPreference sharedPreference;
-
+    int postpartum = 0, pregnant = 0, infants = 0, children = 0, other_women = 0, other_members;
     ExpandablePanel panelMotherInfo, panelChildInfo, panelReferralsInfo, panelDefaultersInfo;
     public MaterialEditText txtHouseMobile, txtHouseholdNum, txtHouseholdMember, txtRemarks,
             txtName;//txtVillageName
@@ -102,6 +95,8 @@ public class MainActivity extends ActionBarActivity implements ExpandablePanel.O
     private boolean isDraft;
     private JSONObject draftedJson;
     private String storeKey;
+    private int member_no;
+    HouseholdDb householdDb;
 
 
     @Override
@@ -119,7 +114,11 @@ public class MainActivity extends ActionBarActivity implements ExpandablePanel.O
 
         if (extras != null) {
             category = extras.getInt("type");
+            member_no = extras.getInt(Constant.MEMBER_NO);
         }
+
+        householdDb = HouseholdDb.getsInstance(getApplicationContext());
+        householdDb.getReadableDatabase();
 
         lblDisplayUser = (TextView) findViewById(R.id.lblDisplayUser);
         lblReturnReason = (TextView) findViewById(R.id.lblReturnReason);
@@ -196,7 +195,6 @@ public class MainActivity extends ActionBarActivity implements ExpandablePanel.O
         spnAC = (Spinner) findViewById(R.id.spnAC);
         spnAL = (Spinner) findViewById(R.id.spnAL);
 
-
         if (category == 0) {
             lblDisplayUser.setText("Category: Postpartum Mother");
             child_in.setVisibility(View.GONE);
@@ -216,7 +214,7 @@ public class MainActivity extends ActionBarActivity implements ExpandablePanel.O
         } else if (category == 4) {
             lblDisplayUser.setText("Category: Other mothers");
             child_in.setVisibility(View.GONE);
-           autoSelectionOtherWomen();
+            autoSelectionOtherWomen();
         } else {
             lblDisplayUser.setText("Category: Other Members");
             child_in.setVisibility(View.GONE);
@@ -241,86 +239,75 @@ public class MainActivity extends ActionBarActivity implements ExpandablePanel.O
         if (extras != null) {
             draft_key = extras.getString(Constant.DRAFT_KEY);
             draft_index = extras.getInt(Constant.DRAFT_INDEX);
+            member_no = extras.getInt(Constant.MEMBER_NO);
+            survey = extras.getInt("survey_id");
         }
 
         if (draft_key != null) {
 
-            JSONObject logic;
-            String trace = getPreferences(Context.MODE_PRIVATE).getString(draft_key, "EMPTY");
-            DraftActivity draftActivity = new DraftActivity();
+            String content = householdDb.getDataSpecific(draft_key, HouseholdDb.TABLE_SURVEY);
+            JSONObject draftValue;
 
-            //clearIndexedDraft(draft_key, draft_index);
-
-            if (!trace.equals("EMPTY")) {
-                logic = draftActivity.showDraft(MainActivity.this, trace);
-                //Toast.makeText(getApplicationContext(), logic.toString(), Toast.LENGTH_LONG).show();
-                if (logic != null) {
-                    isDraft = true;
-
-                    try {
-
-                        if (category == 2 || category == 3) {
-
-                            JSONObject childInfo = logic.getJSONObject("childInfo");
-
-                            if (!childInfo.toString().equals("{}")) {
-
-                                spnChildGender.setSelection(childInfo.getInt("1") - 3);
-                                spnL.setSelection(childInfo.getInt("2"));
-                                spnM.setSelection(childInfo.getInt("3"));
-                                spnN.setSelection(childInfo.getInt("4"));
-                                spnO.setSelection(childInfo.getInt("5"));
-                                txtName.setText(childInfo.getString("6"));
-
-                            }
+            if (content != null && !content.equals("")) {
+                isDraft = true;
+                try {
+                    draftValue = new JSONObject(content);
+                    if (category == 2 || category == 3) {
+                        JSONObject childInfo = draftValue.getJSONObject("childInfo");
+                        if (!childInfo.toString().equals("{}")) {
+                            spnChildGender.setSelection(childInfo.getInt("1") - 3);
+                            spnL.setSelection(childInfo.getInt("2"));
+                            spnM.setSelection(childInfo.getInt("3"));
+                            spnN.setSelection(childInfo.getInt("4"));
+                            spnO.setSelection(childInfo.getInt("5"));
+                            txtName.setText(childInfo.getString("6"));
                         }
-                        JSONObject referralInfo = logic.getJSONObject("referralInfo");
-                        JSONObject defaultersInfo = logic.getJSONObject("defaultersInfo");
+                    }
+                    JSONObject referralInfo = draftValue.getJSONObject("referralInfo");
+                    JSONObject defaultersInfo = draftValue.getJSONObject("defaultersInfo");
 
-                        if (category == 0 || category == 1 || category == 4) {
-                            JSONObject motherInfo = logic.getJSONObject("motherInfo");
+                    if (category == 0 || category == 1 || category == 4) {
+                        JSONObject motherInfo = draftValue.getJSONObject("motherInfo");
 
-                            if (!motherInfo.toString().equals("{}")) {
+                        if (!motherInfo.toString().equals("{}")) {
 
-                                spnPregnant.setSelection(motherInfo.getInt("1"));
-                                spnF.setSelection(motherInfo.getInt("2"));
-                                spnG.setSelection(motherInfo.getInt("3"));
-                                spnH.setSelection(motherInfo.getInt("4"));
-                                spnI.setSelection(motherInfo.getInt("5"));
-                                spnJ.setSelection(motherInfo.getInt("6"));
-                                spnK.setSelection(motherInfo.getInt("7"));
-                                spnAgeGroup.setSelection(motherInfo.getInt("8"));
-                                txtName.setText(motherInfo.getString("9"));
+                            spnPregnant.setSelection(motherInfo.getInt("1"));
+                            spnF.setSelection(motherInfo.getInt("2"));
+                            spnG.setSelection(motherInfo.getInt("3"));
+                            spnH.setSelection(motherInfo.getInt("4"));
+                            spnI.setSelection(motherInfo.getInt("5"));
+                            spnJ.setSelection(motherInfo.getInt("6"));
+                            spnK.setSelection(motherInfo.getInt("7"));
+                            spnAgeGroup.setSelection(motherInfo.getInt("8"));
+                            txtName.setText(motherInfo.getString("9"));
 
-                            }
                         }
-
-
-                        spnP.setSelection(referralInfo.getInt("1"));
-                        spnQ.setSelection(referralInfo.getInt("2"));
-                        spnR.setSelection(referralInfo.getInt("3"));
-                        spnS.setSelection(referralInfo.getInt("4"));
-                        spnT.setSelection(referralInfo.getInt("5"));
-                        spnU.setSelection(referralInfo.getInt("6"));
-                        spnV.setSelection(referralInfo.getInt("7"));
-                        spnW.setSelection(referralInfo.getInt("8"));
-                        spnX.setSelection(referralInfo.getInt("9"));
-
-                        spnZ.setSelection(defaultersInfo.getInt("1"));
-                        spnAA.setSelection(defaultersInfo.getInt("2"));
-                        spnAB.setSelection(defaultersInfo.getInt("3"));
-                        spnAC.setSelection(defaultersInfo.getInt("4"));
-                        spnAL.setSelection(defaultersInfo.getInt("5"));
-
-                        setDraftedJson(logic);
-
-                    } catch (JSONException e) {
-                        e.printStackTrace();
                     }
 
+                    spnP.setSelection(referralInfo.getInt("1"));
+                    spnQ.setSelection(referralInfo.getInt("2"));
+                    spnR.setSelection(referralInfo.getInt("3"));
+                    spnS.setSelection(referralInfo.getInt("4"));
+                    spnT.setSelection(referralInfo.getInt("5"));
+                    spnU.setSelection(referralInfo.getInt("6"));
+                    spnV.setSelection(referralInfo.getInt("7"));
+                    spnW.setSelection(referralInfo.getInt("8"));
+                    spnX.setSelection(referralInfo.getInt("9"));
+
+                    spnZ.setSelection(defaultersInfo.getInt("1"));
+                    spnAA.setSelection(defaultersInfo.getInt("2"));
+                    spnAB.setSelection(defaultersInfo.getInt("3"));
+                    spnAC.setSelection(defaultersInfo.getInt("4"));
+                    spnAL.setSelection(defaultersInfo.getInt("5"));
+
+                    setDraftedJson(draftValue);
+
+                } catch (JSONException e) {
+                    e.printStackTrace();
                 }
 
             }
+
         }
 
     }
@@ -328,7 +315,6 @@ public class MainActivity extends ActionBarActivity implements ExpandablePanel.O
     private void setDraftedJson(JSONObject draftedJson) {
         this.draftedJson = draftedJson;
     }
-
 
     @Override
     protected void onResume() {
@@ -379,17 +365,6 @@ public class MainActivity extends ActionBarActivity implements ExpandablePanel.O
                 .show();
     }
 
-    private void clearIndexedDraft(String key, int index) {
-        DraftActivity.removeDraft(MainActivity.this, index);
-        SharedPreference.removeValue(getApplicationContext(), key);
-    }
-
-    public void clearEditTexts(MaterialEditText[] editTexts) {
-        for (MaterialEditText m : editTexts) {
-            m.setText("");
-        }
-    }
-
     public void save(final Context context, final JSONObject details) {
 
         String url = "";
@@ -410,7 +385,7 @@ public class MainActivity extends ActionBarActivity implements ExpandablePanel.O
                         if (success.isSuccess()) {
 
                             if (isDraft) {
-                                clearIndexedDraft(draft_key, draft_index);
+                                //clearIndexedDraft(draft_key, draft_index);
                             }
                             Crouton.makeText(MainActivity.this, success.getMessage(), Style.CONFIRM).show();
                             if ((category == 2 && children != 0) || (category == 5 && other_members != 0) ||
@@ -452,18 +427,7 @@ public class MainActivity extends ActionBarActivity implements ExpandablePanel.O
 
     @Override
     public void onBackPressed() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
-        builder.setCancelable(false);
-        builder.setTitle("Finish collecting data for all children?");
-        builder.setNegativeButton("Okay", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
 
-            }
-        });
-
-        AlertDialog alert = builder.create();
-        alert.show();
     }
 
     public void submitInformation() throws JSONException {
@@ -494,12 +458,17 @@ public class MainActivity extends ActionBarActivity implements ExpandablePanel.O
             }
 
             if (MUtil.isNetworkConnected(getApplicationContext())) {
-                save(getApplicationContext(), getDraftedJson());
+                //save(getApplicationContext(), getDraftedJson());
+                //intent.putExtra("type", category);
+                //intent.putExtra("pre", "514");
+
+                householdDb.save(jSurveyMother.toString(), draft_key, HouseholdDb.TABLE_SURVEY);
                 intent.putExtra("type", category);
                 intent.putExtra("pre", "514");
+                intent.putExtra("rand", draft_key);
             } else {
-                draft_key = draft_key + "-" + storeKey;
-                DraftActivity.makeDraft(MainActivity.this, jSurveyMother, draft_key);
+
+                householdDb.save(jSurveyMother.toString(), draft_key, HouseholdDb.TABLE_SURVEY);
 
                 intent = new Intent(getApplicationContext(), MotherDssActivity.class);
                 intent.putExtra("type", category);
@@ -510,11 +479,22 @@ public class MainActivity extends ActionBarActivity implements ExpandablePanel.O
 
         } else {
 
-            loadSharedPrefs();
-            int number = 0;
-
             try {
-                prefill();
+                jReferralInfo.put("1", ((Spinner) findViewById(R.id.spnP)).getSelectedItemId());
+                jReferralInfo.put("2", ((Spinner) findViewById(R.id.spnQ)).getSelectedItemPosition());
+                jReferralInfo.put("3", ((Spinner) findViewById(R.id.spnR)).getSelectedItemPosition());
+                jReferralInfo.put("4", ((Spinner) findViewById(R.id.spnS)).getSelectedItemPosition());
+                jReferralInfo.put("5", ((Spinner) findViewById(R.id.spnT)).getSelectedItemPosition());
+                jReferralInfo.put("6", ((Spinner) findViewById(R.id.spnU)).getSelectedItemPosition());
+                jReferralInfo.put("7", ((Spinner) findViewById(R.id.spnV)).getSelectedItemPosition());
+                jReferralInfo.put("8", ((Spinner) findViewById(R.id.spnW)).getSelectedItemPosition());
+                jReferralInfo.put("9", ((Spinner) findViewById(R.id.spnX)).getSelectedItemPosition());
+
+                jDefaultersInfo.put("1", ((Spinner) findViewById(R.id.spnZ)).getSelectedItemPosition());
+                jDefaultersInfo.put("2", ((Spinner) findViewById(R.id.spnAA)).getSelectedItemPosition());
+                jDefaultersInfo.put("3", ((Spinner) findViewById(R.id.spnAB)).getSelectedItemPosition());
+                jDefaultersInfo.put("4", ((Spinner) findViewById(R.id.spnAC)).getSelectedItemPosition());
+                jDefaultersInfo.put("5", ((Spinner) findViewById(R.id.spnAL)).getSelectedItemPosition());
 
                 jMotherInfo.put("1", spnPregnant.getSelectedItemId());
                 jMotherInfo.put("2", spnF.getSelectedItemId());
@@ -537,86 +517,34 @@ public class MainActivity extends ActionBarActivity implements ExpandablePanel.O
                 e.printStackTrace();
             }
 
-            if (category == 0 && postpartum != 0) {
-
-                postpartum = function2(pregnant, var_pregnant, "postpartum");
-
-                if (!isDraft) {
-                    sharedPreference.save(getApplicationContext(), postpartum, pregnant, children,
-                            infants, other_women, other_members, survey);
-                }
-
-            } else if (category == 1 && pregnant != 0) {
-
-                pregnant = function2(pregnant, var_pregnant, "pregnant");
-
-                if (!isDraft) {
-                    sharedPreference.save(getApplicationContext(), postpartum, pregnant, children,
-                            infants, other_women, other_members, survey);
-                }
-
-            } else if (category == 4 && other_women != 0) {
-
-                other_women = function2(other_women, var_mothers, "other_mothers");
-
-                if (other_women == 0) {
-
-                    btnSubmit.setText("Continue");
-                    sharedPreference.save(getApplicationContext(), postpartum, pregnant, children,
-                            infants, other_women, other_members, survey);
-                    Intent intent = new Intent(getApplicationContext(), MotherDssActivity.class);
-                    startActivity(intent);
-                }
-
-                if (!isDraft) {
-                    sharedPreference.save(getApplicationContext(), postpartum, pregnant, children,
-                            infants, other_women, other_members, survey);
-                }
-
+            if (category == 0 && member_no != 0) {
+                function2();
+            } else if (category == 1 && member_no != 0) {
+                function2();
+            } else if (category == 4 && member_no != 0) {
+                // different logic
+                function2();
             } else if (category == 5 && other_members != 0) {
-
-                other_members = function(other_members, var_members, "other_members");
-
+                function();
                 if (other_members == 0) {
                     btnSubmit.setText("Continue");
-                    sharedPreference.save(getApplicationContext(), postpartum, pregnant, children,
-                            infants, other_women, other_members, survey);
                     Intent intent = new Intent(getApplicationContext(), HouseholdMembersActivity.class);
                     startActivity(intent);
                 }
-
-                if (!isDraft) {
-                    sharedPreference.save(getApplicationContext(), postpartum, pregnant, children,
-                            infants, other_women, other_members, survey);
-                }
-
 
             } else if (category == 2 && children != 0) {
-
-                children = function(children, var_members, "children");
-
+                function();
                 if (children == 0) {
                     btnSubmit.setText("Continue");
-                    sharedPreference.save(getApplicationContext(), postpartum, pregnant, children,
-                            infants, other_women, other_members, survey);
                     Intent intent = new Intent(getApplicationContext(), HouseholdMembersActivity.class);
                     startActivity(intent);
-                }
-
-                if (!isDraft) {
-                    sharedPreference.save(getApplicationContext(), postpartum, pregnant, children,
-                            infants, other_women, other_members, survey);
                 }
 
             } else if (category == 3 && infants != 0) {
 
-                infants = infants - 1;
-
-                number = var_infants - infants;
-
                 try {
                     categoryInfo.put("type", category);
-                    categoryInfo.put("number", number);
+                    categoryInfo.put("number", member_no);
                     categoryInfo.put("survey_id", survey);
                     categoryInfo.put("survey_status", survey_status);
                     jSurveyMother.put("categoryInfo", categoryInfo);
@@ -627,58 +555,26 @@ public class MainActivity extends ActionBarActivity implements ExpandablePanel.O
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
-
-                String member_key = "newborns" + number + "-" + storeKey;
-
                 Intent intent = null;
 
 //                if (MUtil.isNetworkConnected(getApplicationContext())) {
 //                    save(getApplicationContext(), jSurveyMother);
 //                    intent = new Intent(getApplicationContext(), BabyDssActivity.class);
 //                } else {
-                    DraftActivity.makeDraft(MainActivity.this, jSurveyMother, member_key);
-                    intent = new Intent(getApplicationContext(), BabyDssActivity.class);
+
+                householdDb.save(jSurveyMother.toString(), draft_key, HouseholdDb.TABLE_SURVEY);
+
+                intent = new Intent(getApplicationContext(), BabyDssActivity.class);
 //                }
 
-                if (!isDraft) {
-                    sharedPreference.save(getApplicationContext(), postpartum, pregnant, children,
-                            infants, other_women, other_members, survey);
-                }
 
-                intent.putExtra("rand", member_key);
+                intent.putExtra("rand", draft_key);
                 intent.putExtra("type", category);
                 intent.putExtra("pre", "514");
                 startActivity(intent);
             }
 
         }
-
-    }
-
-    private void loadSharedPrefs() {
-
-        sharedPreference = new SharedPreference();
-        shared514 = new SharedPreferences514();
-
-        int village = shared514.getValue(getApplicationContext(), "village");
-        shared514.save(getApplicationContext(), txtName.getText().toString(), village, "", "", survey);
-
-        survey = sharedPreference.getValue(getApplicationContext(), "survey_id");
-        postpartum = sharedPreference.getValue(getApplicationContext(), "postpartum");
-        pregnant = sharedPreference.getValue(getApplicationContext(), "pregnant");
-        other_women = sharedPreference.getValue(getApplicationContext(), "other_mothers");
-        other_members = sharedPreference.getValue(getApplicationContext(), "other_members");
-        children = sharedPreference.getValue(getApplicationContext(), "children");
-        infants = sharedPreference.getValue(getApplicationContext(), "infant");
-
-        final SharedPreferences sharedpreferences = getSharedPreferences(Constant.HOUSEHOLD_INFORMATION, Context.MODE_PRIVATE);
-        var_postpartum = sharedpreferences.getInt("postpartum", 0);
-        var_pregnant = sharedpreferences.getInt("pregnant", 0);
-        var_mothers = sharedpreferences.getInt("other_mothers", 0);
-        var_members = sharedpreferences.getInt("other_members", 0);
-        var_children = sharedpreferences.getInt("children", 0);
-        var_infants = sharedpreferences.getInt("infants", 0);
-        survey_status = sharedpreferences.getInt("survey_status", 0);
 
     }
 
@@ -836,36 +732,17 @@ public class MainActivity extends ActionBarActivity implements ExpandablePanel.O
     }
 
     public void autoSelectionPostpartum() {
-        setSpinnerSelectedIndex(3, new Spinner[]{spnP,spnQ, spnU, spnT, spnPregnant, spnF, spnZ,
+        setSpinnerSelectedIndex(3, new Spinner[]{spnP, spnQ, spnU, spnT, spnPregnant, spnF, spnZ,
                 spnAA, spnAL});
     }
 
     private void autoSelectionOtherWomen() {
-        setSpinnerSelectedIndex(3, new Spinner[]{spnPregnant,spnF, spnH, spnI, spnJ, spnP, spnQ, spnS, spnT,
+        setSpinnerSelectedIndex(3, new Spinner[]{spnPregnant, spnF, spnH, spnI, spnJ, spnP, spnQ, spnS, spnT,
                 spnU, spnZ, spnAA, spnAL});
     }
 
     private void autoSelectionOther() {
-        setSpinnerSelectedIndex(3, new Spinner[]{spnP,spnQ, spnS, spnT, spnU, spnZ, spnAA, spnAL});
-    }
-
-    private void prefill() throws JSONException {
-
-        jReferralInfo.put("1", ((Spinner) findViewById(R.id.spnP)).getSelectedItemId());
-        jReferralInfo.put("2", ((Spinner) findViewById(R.id.spnQ)).getSelectedItemPosition());
-        jReferralInfo.put("3", ((Spinner) findViewById(R.id.spnR)).getSelectedItemPosition());
-        jReferralInfo.put("4", ((Spinner) findViewById(R.id.spnS)).getSelectedItemPosition());
-        jReferralInfo.put("5", ((Spinner) findViewById(R.id.spnT)).getSelectedItemPosition());
-        jReferralInfo.put("6", ((Spinner) findViewById(R.id.spnU)).getSelectedItemPosition());
-        jReferralInfo.put("7", ((Spinner) findViewById(R.id.spnV)).getSelectedItemPosition());
-        jReferralInfo.put("8", ((Spinner) findViewById(R.id.spnW)).getSelectedItemPosition());
-        jReferralInfo.put("9", ((Spinner) findViewById(R.id.spnX)).getSelectedItemPosition());
-
-        jDefaultersInfo.put("1", ((Spinner) findViewById(R.id.spnZ)).getSelectedItemPosition());
-        jDefaultersInfo.put("2", ((Spinner) findViewById(R.id.spnAA)).getSelectedItemPosition());
-        jDefaultersInfo.put("3", ((Spinner) findViewById(R.id.spnAB)).getSelectedItemPosition());
-        jDefaultersInfo.put("4", ((Spinner) findViewById(R.id.spnAC)).getSelectedItemPosition());
-        jDefaultersInfo.put("5", ((Spinner) findViewById(R.id.spnAL)).getSelectedItemPosition());
+        setSpinnerSelectedIndex(3, new Spinner[]{spnP, spnQ, spnS, spnT, spnU, spnZ, spnAA, spnAL});
     }
 
     private void restart() {
@@ -880,15 +757,11 @@ public class MainActivity extends ActionBarActivity implements ExpandablePanel.O
         return draftedJson;
     }
 
-    public int function(int member, int var_member, String type) {
-
-        member = member - 1;
-
-        int number = var_member - member;
+    public void function() {
 
         try {
             categoryInfo.put("type", category);
-            categoryInfo.put("number", number);
+            categoryInfo.put("number", draft_key);
             categoryInfo.put("survey_id", survey);
             categoryInfo.put("survey_status", survey_status);
             jSurveyMother.put("categoryInfo", categoryInfo);
@@ -899,25 +772,20 @@ public class MainActivity extends ActionBarActivity implements ExpandablePanel.O
             e.printStackTrace();
         }
 
-        String member_key = type + number + "-" + storeKey;
-
 //        if (MUtil.isNetworkConnected(getApplicationContext())) {
 //            save(getApplicationContext(), jSurveyMother);
 //        } else {
-            DraftActivity.makeDraft(MainActivity.this, jSurveyMother, member_key);
-            Intent intent = new Intent(getApplicationContext(), HouseholdMembersActivity.class);
-            startActivity(intent);
+        householdDb.save(jSurveyMother.toString(), draft_key, HouseholdDb.TABLE_SURVEY);
+        Intent intent = new Intent(getApplicationContext(), HouseholdMembersActivity.class);
+        startActivity(intent);
 //        }
-
-        return member;
     }
 
-    public int function2(int member, int var_member, String type){
-        member = member - 1;
-        int number = var_member - member;
+    public void function2() {
+
         try {
             categoryInfo.put("type", category);
-            categoryInfo.put("number", number);
+            categoryInfo.put("number", member_no);
             categoryInfo.put("survey_id", survey);
             categoryInfo.put("survey_status", survey_status);
             jSurveyMother.put("categoryInfo", categoryInfo);
@@ -931,21 +799,19 @@ public class MainActivity extends ActionBarActivity implements ExpandablePanel.O
 
         Intent intent;
 
-        String member_key = type + number + "-" + storeKey;
-
 //        if (MUtil.isNetworkConnected(getApplicationContext())) {
 //            save(getApplicationContext(), jSurveyMother);
 //            intent = new Intent(getApplicationContext(), MotherDssActivity.class);
 //        } else {
-            DraftActivity.makeDraft(MainActivity.this, jSurveyMother, member_key);
-            intent = new Intent(getApplicationContext(), MotherDssActivity.class);
+        householdDb.save(jSurveyMother.toString(), draft_key, HouseholdDb.TABLE_SURVEY);
+
+        intent = new Intent(getApplicationContext(), MotherDssActivity.class);
 //        }
-        intent.putExtra("rand", member_key);
+        intent.putExtra("rand", draft_key);
+        intent.putExtra("survey_id", survey);
         intent.putExtra("type", category);
         intent.putExtra("pre", "514");
         startActivity(intent);
-
-        return member;
     }
 
 }

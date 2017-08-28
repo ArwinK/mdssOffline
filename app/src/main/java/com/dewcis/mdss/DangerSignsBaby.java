@@ -1,13 +1,11 @@
 package com.dewcis.mdss;
 
-import android.annotation.TargetApi;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.os.Build;
 import android.os.Bundle;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarActivity;
@@ -26,7 +24,6 @@ import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.dewcis.mdss.SharedPreferences.SharedPreference;
 import com.dewcis.mdss.constants.Constant;
-import com.dewcis.mdss.utils.DraftActivity;
 import com.dewcis.mdss.model.MSession;
 import com.dewcis.mdss.model.Success;
 import com.dewcis.mdss.utils.ExpandablePanel;

@@ -662,7 +662,7 @@ public class HouseHoldActivity extends ActionBarActivity implements ExpandablePa
 
         HouseholdDb householdDb = HouseholdDb.getsInstance(getApplicationContext());
         householdDb.getWritableDatabase();
-        householdDb.save(jSurvey.toString(), survey + "");
+        householdDb.save(jSurvey.toString(), survey + "", HouseholdDb.TABLE_LOGIN);
 
 //        SharedPreferences housePrefs = getSharedPreferences(Constant.HOUSE_KEY, Context.MODE_PRIVATE);
 //        SharedPreferences.Editor hEditor = housePrefs.edit();
@@ -684,13 +684,6 @@ public class HouseHoldActivity extends ActionBarActivity implements ExpandablePa
     public void showInvalidMessage(int message) {
         new SweetAlertDialog(HouseHoldActivity.this, SweetAlertDialog.WARNING_TYPE)
                 .setContentText("Select If " + getResources().getString(message)).show();
-    }
-
-
-    public void setSpinnerSelectedIndex(int index, Spinner[] spinners) {
-        for (Spinner s : spinners) {
-            s.setSelection(index);
-        }
     }
 
     @Override

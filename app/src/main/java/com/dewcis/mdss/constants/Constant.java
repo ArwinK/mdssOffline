@@ -14,6 +14,7 @@ public class Constant {
     public static final String DRAFT_PREFS = "DRAFT_PREFS";
     public static final String DRAFT_INDEX = "draft_index";
     public static final String MEMBER_NO = "member_no";
+    public static final String DSS_NUMBER = "dss_number";
     public static String KEY_RAND = "client_rand";
     public static String KEY_ACTIVITY = "client_activity";
     public static final String HOUSEHOLD_INFORMATION = "house_hold";

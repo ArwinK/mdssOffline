@@ -16,11 +16,13 @@ import java.util.ArrayList;
 
 public class HouseholdDb extends SQLiteOpenHelper {
 
-    public static final int DATABASE_VERSION = 3;
+    public static final int DATABASE_VERSION = 4;
 
     public static final String DATABASE_NAME = "Household";
 
-    public static final String TABLE_LOGIN = "Login";
+    public static final String TABLE_SURVEY = "survey";
+
+    public static final String TABLE_LOGIN = "sectionOne";
 
     static HouseholdDb sInstance;
 
@@ -42,28 +44,35 @@ public class HouseholdDb extends SQLiteOpenHelper {
                 + Constant.KEY_RAND + " TEXT,"
                 + Constant.KEY_VALUE + " TEXT" + ")";
         sqLiteDatabase.execSQL(CREATE_TABLE_LOGIN);
+
+        String CREATE_TABLE_SURVEY = "CREATE TABLE " + TABLE_SURVEY + "("
+                + Constant.KEY_ID + " INTEGER PRIMARY KEY AUTOINCREMENT,"
+                + Constant.KEY_RAND + " TEXT,"
+                + Constant.KEY_VALUE + " TEXT" + ")";
+        sqLiteDatabase.execSQL(CREATE_TABLE_SURVEY);
     }
 
     @Override
     public void onUpgrade(SQLiteDatabase sqLiteDatabase, int i, int i1) {
         sqLiteDatabase.execSQL("DROP TABLE IF EXISTS " + TABLE_LOGIN);
+        sqLiteDatabase.execSQL("DROP TABLE IF EXISTS " + TABLE_SURVEY);
         onCreate(sqLiteDatabase);
     }
 
-    public void save(String json, String rand) {
+    public void save(String json, String rand, String table) {
 
         SQLiteDatabase sqLiteDatabase = this.getWritableDatabase();
         ContentValues contentValues = new ContentValues();
         contentValues.put(Constant.KEY_RAND, rand);
         contentValues.put(Constant.KEY_VALUE, json);
 
-        sqLiteDatabase.insert(TABLE_LOGIN, null, contentValues);
+        sqLiteDatabase.insert(table, null, contentValues);
     }
 
-    public String getData() {
+    public String getData(String table) {
         String getdata = null;
 
-        String retrieve = "SELECT * FROM TABLE " + TABLE_LOGIN;
+        String retrieve = "SELECT * FROM TABLE " + table;
         SQLiteDatabase sqLiteDatabase = this.getReadableDatabase();
         Cursor cursor = sqLiteDatabase.rawQuery(retrieve, null);
 
@@ -71,7 +80,6 @@ public class HouseholdDb extends SQLiteOpenHelper {
 
         while (cursor.getCount() > 0) {
             getdata = cursor.getString(cursor.getColumnIndex(Constant.KEY_VALUE));
-            ;
             cursor.moveToNext();
         }
         cursor.close();
@@ -79,11 +87,11 @@ public class HouseholdDb extends SQLiteOpenHelper {
         return getdata;
     }
 
-    public String getDataSpecific(String search) {
+    public String getDataSpecific(String search, String table) {
 
         String content = null;
 
-        String selectQuery = "SELECT  * FROM " + TABLE_LOGIN + " WHERE client_rand ='" + search.trim() + "'";
+        String selectQuery = "SELECT  * FROM " + table + " WHERE client_rand ='" + search.trim() + "'";
 
         SQLiteDatabase db = this.getReadableDatabase();
         Cursor cursor = db.rawQuery(selectQuery, null);
@@ -101,12 +109,13 @@ public class HouseholdDb extends SQLiteOpenHelper {
         SQLiteDatabase db = this.getWritableDatabase();
         // Delete All Rows
         db.delete(TABLE_LOGIN, null, null);
+        db.delete(TABLE_SURVEY, null, null);
         // db.close();
     }
 
-    public ArrayList getDataAll() {
+    public ArrayList getDataAll(String table) {
 
-        String selectQuery = "SELECT  * FROM " + TABLE_LOGIN;
+        String selectQuery = "SELECT  * FROM " + table;
 
         SQLiteDatabase db = this.getReadableDatabase();
         Cursor cursor = db.rawQuery(selectQuery, null);

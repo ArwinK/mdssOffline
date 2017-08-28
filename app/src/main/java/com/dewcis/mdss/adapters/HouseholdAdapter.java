@@ -7,6 +7,7 @@ package com.dewcis.mdss.adapters;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -76,6 +77,7 @@ public class HouseholdAdapter extends RecyclerView.Adapter<HouseholdAdapter.MyVi
                 intent.putExtra("survey_id", survey);
                 intent.putExtra("member_no", no);
                 mContext.startActivity(intent);
+
 
             }
         });
